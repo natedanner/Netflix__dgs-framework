@@ -1,8 +1,20 @@
 
 type Query {
+    # SDL comment for 'hello' field (before description comment).
+    """
+    Description comment for 'hello' field (after hash comment).
+    """
     hello(name: String): String
+    """
+    Description comment for 'withContext' field (before hash comment).
+    """
+    # SDL comment for 'withContext' field (after description comment).
     withContext: String
+    """
+    Description comment for 'withDataLoaderContext' field (no SDL comment).
+    """
     withDataLoaderContext: String
+    # SDL comment for 'withDataLoaderGraphQLContext' field (no description comment).
     withDataLoaderGraphQLContext: String
     movies: [Movie]
     messageFromBatchLoader: String

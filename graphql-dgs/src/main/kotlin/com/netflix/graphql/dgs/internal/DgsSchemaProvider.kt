@@ -48,6 +48,7 @@ import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaDirectiveWiring
+import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import graphql.schema.idl.TypeRuntimeWiring
@@ -142,17 +143,19 @@ class DgsSchemaProvider(
     fun schema(
         @Language("GraphQL") schema: String? = null,
         fieldVisibility: GraphqlFieldVisibility = DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY,
-        schemaResources: Set<Resource> = emptySet()
+        schemaResources: Set<Resource> = emptySet(),
+        useCommentsAsDescriptions: Boolean = false
     ): SchemaProviderResult {
         schemaReadWriteLock.write {
             dataFetchers.clear()
             dataFetcherTracingInstrumentationEnabled.clear()
             dataFetcherMetricsInstrumentationEnabled.clear()
-            return computeSchema(schema, fieldVisibility, schemaResources)
+            return computeSchema(schema, fieldVisibility, schemaResources, useCommentsAsDescriptions)
         }
     }
 
-    private fun computeSchema(schema: String? = null, fieldVisibility: GraphqlFieldVisibility, schemaResources: Set<Resource> = emptySet()): SchemaProviderResult {
+    private fun computeSchema(schema: String? = null, fieldVisibility: GraphqlFieldVisibility, schemaResources: Set<Resource> = emptySet(),
+                              useCommentsAsDescriptions: Boolean): SchemaProviderResult {
         val startTime = System.currentTimeMillis()
         val dgsComponents = applicationContext.getBeansWithAnnotation<DgsComponent>().values.asSequence()
             .let { beans -> if (componentFilter != null) beans.filter(componentFilter) else beans }
@@ -227,9 +230,17 @@ class DgsSchemaProvider(
         val entityFetcher = federationResolverInstance.entitiesFetcher()
         val typeResolver = federationResolverInstance.typeResolver()
 
+        // Build schema with custom configuration options.
+        val options = SchemaGenerator.Options.defaultOptions().useCommentsAsDescriptions(useCommentsAsDescriptions)
+        val configuredGraphQLSchema = SchemaGenerator().makeExecutableSchema(options, mergedRegistry, runtimeWiring)
+
+        // todo: ensure the checks in the prior overloaded .transform() are covered in this .transform()
+        // missing _FieldSet    <- federation directives checks not covered
         var graphQLSchema =
-            Federation.transform(mergedRegistry, runtimeWiring).fetchEntities(entityFetcher)
-                .resolveEntityType(typeResolver).build()
+            Federation.transform(configuredGraphQLSchema).fetchEntities(entityFetcher)
+                .resolveEntityType(typeResolver)
+                .setFederation2(true)
+                .build()
 
         val endTime = System.currentTimeMillis()
         val totalTime = endTime - startTime

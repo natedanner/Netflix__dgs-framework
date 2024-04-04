@@ -29,6 +29,7 @@ data class DgsConfigurationProperties(
     /** Location of the GraphQL schema files. */
     @DefaultValue(DEFAULT_SCHEMA_LOCATION) val schemaLocations: List<String>,
     @DefaultValue("true") val schemaWiringValidationEnabled: Boolean,
+    @DefaultValue("false") val showSDLComments: Boolean,
     @DefaultValue("false") val enableEntityFetcherCustomScalarParsing: Boolean,
     val preparsedDocumentProvider: DgsPreparsedDocumentProviderConfigurationProperties = DgsPreparsedDocumentProviderConfigurationProperties()
 ) {

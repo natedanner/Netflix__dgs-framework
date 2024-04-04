@@ -15,5 +15,6 @@ logging:
 
 dgs:
   graphql:
+    show-sdl-comments: true
     prevent-mutation-over-get:
       enabled: true

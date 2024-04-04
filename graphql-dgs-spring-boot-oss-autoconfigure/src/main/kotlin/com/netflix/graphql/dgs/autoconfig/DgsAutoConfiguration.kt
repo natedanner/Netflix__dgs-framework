@@ -274,7 +274,10 @@ open class DgsAutoConfiguration(
     @Bean
     @ConditionalOnMissingBean
     open fun schema(dgsSchemaProvider: DgsSchemaProvider, fieldVisibility: GraphqlFieldVisibility): GraphQLSchema {
-        return dgsSchemaProvider.schema(null, fieldVisibility).graphQLSchema
+        return dgsSchemaProvider.schema(
+            fieldVisibility = fieldVisibility,
+            useCommentsAsDescriptions = configProps.showSDLComments
+        ).graphQLSchema
     }
 
     @Bean
