@@ -17,6 +17,8 @@
 package com.netflix.graphql.dgs.internal
 
 import com.apollographql.federation.graphqljava.Federation
+import com.apollographql.federation.graphqljava.FederationDirectives
+import com.apollographql.federation.graphqljava._FieldSet
 import com.netflix.graphql.dgs.*
 import com.netflix.graphql.dgs.exceptions.DataFetcherInputArgumentSchemaMismatchException
 import com.netflix.graphql.dgs.exceptions.DataFetcherSchemaMismatchException
@@ -31,6 +33,7 @@ import com.netflix.graphql.mocking.DgsSchemaTransformer
 import com.netflix.graphql.mocking.MockProvider
 import graphql.TypeResolutionEnvironment
 import graphql.execution.DataFetcherExceptionHandler
+import graphql.language.DirectiveDefinition
 import graphql.language.FieldDefinition
 import graphql.language.ImplementingTypeDefinition
 import graphql.language.InterfaceTypeDefinition
@@ -70,7 +73,7 @@ import org.springframework.core.io.support.ResourcePatternUtils
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
 import java.lang.reflect.Method
-import java.util.Optional
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -230,12 +233,10 @@ class DgsSchemaProvider(
         val entityFetcher = federationResolverInstance.entitiesFetcher()
         val typeResolver = federationResolverInstance.typeResolver()
 
-        // Build schema with custom configuration options.
+        // Build schema with custom configuration options. Customizing the schema necessitates adding federation directives.
+        val runtimeWiringWithFederationDirectives = ensureFederationDirectiveDefinitionsExist(mergedRegistry, runtimeWiring)
         val options = SchemaGenerator.Options.defaultOptions().useCommentsAsDescriptions(useCommentsAsDescriptions)
-        val configuredGraphQLSchema = SchemaGenerator().makeExecutableSchema(options, mergedRegistry, runtimeWiring)
-
-        // todo: ensure the checks in the prior overloaded .transform() are covered in this .transform()
-        // missing _FieldSet    <- federation directives checks not covered
+        val configuredGraphQLSchema = SchemaGenerator().makeExecutableSchema(options, mergedRegistry, runtimeWiringWithFederationDirectives)
         var graphQLSchema =
             Federation.transform(configuredGraphQLSchema).fetchEntities(entityFetcher)
                 .resolveEntityType(typeResolver)
@@ -253,6 +254,46 @@ class DgsSchemaProvider(
         }
 
         return SchemaProviderResult(graphQLSchema, runtimeWiring)
+    }
+
+    /**
+     * Port the implementation of adding federation directives from federation-graphql-java-support:4.4.0
+     * Adds _FieldSet to typeMap and federation directives to schema directive definitions
+     * todo: verify ensureFederationV2DirectiveDefinitionsExist checks covered too
+     * Opened issue: https://github.com/apollographql/federation-jvm/issues/389
+     */
+    private fun ensureFederationDirectiveDefinitionsExist(
+        typeRegistry: TypeDefinitionRegistry, runtimeWiring: RuntimeWiring
+    ): RuntimeWiring? {
+
+        // Add Federation directives if they don't exist.
+        FederationDirectives.federation1DirectiveDefinitions.stream()
+            .filter { def: DirectiveDefinition ->
+                !typeRegistry.getDirectiveDefinition(
+                    def.name
+                ).isPresent
+            }
+            .forEachOrdered { definition: DirectiveDefinition? ->
+                typeRegistry.add(
+                    definition
+                )
+            }
+
+        // Add scalar type for _FieldSet, since the directives depend on it.
+        if (!typeRegistry.getType(_FieldSet.typeName).isPresent) {
+            typeRegistry.add(_FieldSet.definition)
+        }
+
+        // Also add the implementation for _FieldSet.
+        return if (!runtimeWiring.scalars.containsKey(_FieldSet.typeName)) {
+            runtimeWiring.transform { wiring: RuntimeWiring.Builder ->
+                wiring.scalar(
+                    _FieldSet.type
+                )
+            }
+        } else {
+            runtimeWiring
+        }
     }
 
     private fun invokeDgsTypeDefinitionRegistry(
