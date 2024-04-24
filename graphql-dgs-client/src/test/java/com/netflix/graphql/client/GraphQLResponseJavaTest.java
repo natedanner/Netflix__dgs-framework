@@ -78,7 +78,7 @@ public class GraphQLResponseJavaTest {
         );
 
         String submittedBy = graphQLResponse.extractValueAsObject("submitReview.submittedBy", String.class);
-        assert(submittedBy).contentEquals("abc@netflix.com");
+        assertsubmittedBy.contentEquals("abc@netflix.com");
         server.verify();
     }
 
@@ -100,7 +100,7 @@ public class GraphQLResponseJavaTest {
        GraphQLResponse graphQLResponse = client.executeQuery(query, emptyMap(), requestExecutorWithResponseHeaders);
 
         String submittedBy = graphQLResponse.extractValueAsObject("submitReview.submittedBy", String.class);
-        assert(submittedBy).contentEquals("abc@netflix.com");
+        assertsubmittedBy.contentEquals("abc@netflix.com");
         assert(graphQLResponse.getHeaders().get("Content-Type").get(0)).contentEquals("application/json");
         server.verify();
     }
@@ -116,7 +116,7 @@ public class GraphQLResponseJavaTest {
         CustomGraphQLClient client = GraphQLClient.createCustom(url, requestExecutor);
         GraphQLResponse graphQLResponse = client.executeQuery(query, emptyMap(), "SubmitReview");
         String submittedBy = graphQLResponse.extractValueAsObject("submitReview.submittedBy", String.class);
-        assert(submittedBy).contentEquals("abc@netflix.com");
+        assertsubmittedBy.contentEquals("abc@netflix.com");
         server.verify();
     }
 
@@ -136,7 +136,7 @@ public class GraphQLResponseJavaTest {
         });
         Mono<GraphQLResponse> graphQLResponse = client.reactiveExecuteQuery(query, emptyMap(), "SubmitReview");
         String submittedBy = graphQLResponse.map(r -> r.extractValueAsObject("submitReview.submittedBy", String.class)).block();
-        assert(submittedBy).contentEquals("abc@netflix.com");
+        assertsubmittedBy.contentEquals("abc@netflix.com");
         server.verify();
     }
 }

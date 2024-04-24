@@ -32,8 +32,12 @@ public class JPerson {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof JPerson)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof JPerson)) {
+            return false;
+        }
         JPerson jPerson = (JPerson) o;
         return Objects.equals(getName(), jPerson.getName());
     }

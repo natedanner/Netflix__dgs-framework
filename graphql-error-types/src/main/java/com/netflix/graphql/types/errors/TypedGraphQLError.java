@@ -252,21 +252,31 @@ public class TypedGraphQLError implements GraphQLError {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null) return false;
-        if (obj.getClass() != this.getClass()) return false;
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
 
         TypedGraphQLError e = (TypedGraphQLError)obj;
 
-        if (!Objects.equals(message, e.message)) return false;
-        if (!Objects.equals(locations, e.locations)) return false;
-        if (!Objects.equals(path, e.path)) return false;
-        if (!Objects.equals(extensions, e.extensions)) return false;
-
-        return true;
+        if (!Objects.equals(message, e.message)) {
+            return false;
+        }
+        if (!Objects.equals(locations, e.locations)) {
+            return false;
+        }
+        if (!Objects.equals(path, e.path)) {
+            return false;
+        }
+        return !!Objects.equals(extensions, e.extensions);
     }
 
-    public static class Builder {
+    public static final class Builder {
         private String message;
         private List<Object> path;
         private List<SourceLocation> locations = new ArrayList<>();
@@ -285,16 +295,24 @@ public class TypedGraphQLError implements GraphQLError {
 
         private Map<String, Object> getExtensions() {
             HashMap<String, Object> extensionsMap = new HashMap<>();
-            if (extensions != null) extensionsMap.putAll(extensions);
+            if (extensions != null) {
+                extensionsMap.putAll(extensions);
+            }
             if (errorClassification instanceof ErrorType) {
                 extensionsMap.put("errorType", String.valueOf(errorClassification));
             } else if (errorClassification instanceof ErrorDetail) {
                 extensionsMap.put("errorType", String.valueOf(((ErrorDetail) errorClassification).getErrorType()));
                 extensionsMap.put("errorDetail", String.valueOf(errorClassification));
             }
-            if (origin != null) extensionsMap.put("origin", origin);
-            if (debugUri != null) extensionsMap.put("debugUri", debugUri);
-            if (debugInfo != null) extensionsMap.put("debugInfo", debugInfo);
+            if (origin != null) {
+                extensionsMap.put("origin", origin);
+            }
+            if (debugUri != null) {
+                extensionsMap.put("debugUri", debugUri);
+            }
+            if (debugInfo != null) {
+                extensionsMap.put("debugInfo", debugInfo);
+            }
             return extensionsMap;
         }
 
@@ -362,7 +380,9 @@ public class TypedGraphQLError implements GraphQLError {
          * @return a newly built GraphQLError
          */
         public TypedGraphQLError build() {
-            if (message == null) message = defaultMessage();
+            if (message == null) {
+                message = defaultMessage();
+            }
             return new TypedGraphQLError(message, locations, errorClassification, path, getExtensions());
         }
     }

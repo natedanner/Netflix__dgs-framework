@@ -53,8 +53,12 @@ public class JListOfListsOfLists {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof JListOfListOfThings)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof JListOfListOfThings)) {
+                return false;
+            }
             JListOfListOfThings<?> that = (JListOfListOfThings<?>) o;
             return Objects.equals(getLists(), that.getLists());
         }
