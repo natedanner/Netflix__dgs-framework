@@ -37,8 +37,12 @@ public class JFilter {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof JFilter)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof JFilter)) {
+            return false;
+        }
         JFilter jFilter = (JFilter) o;
         return Objects.equals(getQuery(), jFilter.getQuery());
     }

@@ -17,5 +17,5 @@
 package com.netflix.graphql.dgs.internal.java.test.inputobjects;
 
 public enum JEnum {
-    A, B, C;
+    A, B, C
 }

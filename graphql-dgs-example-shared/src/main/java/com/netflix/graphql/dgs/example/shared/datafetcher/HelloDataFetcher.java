@@ -68,9 +68,7 @@ public class HelloDataFetcher {
     @DgsData(parentType = "Query", field = "messageFromBatchLoaderWithScheduledDispatch")
     public CompletableFuture<String> getMessageScheduled(DataFetchingEnvironment env) {
         DataLoader<String, String> dataLoader = env.getDataLoader("messagesWithScheduledDispatch");
-        CompletableFuture res =  dataLoader.load("a");
-
-        return res;
+        return dataLoader.load("a");
     }
 
     @DgsData(parentType = "Query", field = "messagesWithExceptionFromBatchLoader")
